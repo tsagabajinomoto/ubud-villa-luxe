@@ -30,7 +30,7 @@ const VillaCard = ({ villa, index, featured = false }: { villa: typeof villas[0]
       {/* Image Container */}
       <div className={`relative overflow-hidden ${featured ? "h-80 lg:h-full" : "h-64"}`}>
         <img
-          src={villa.image}
+          src={villa.images[0]}
           alt={villa.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
