@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
+import { Link } from "react-router-dom";
 import { Star, Users, Bed, Bath, ArrowRight } from "lucide-react";
 import { villas } from "@/data/villas";
 
@@ -18,85 +19,87 @@ const VillaCard = ({ villa, index, featured = false }: { villa: typeof villas[0]
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 50 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.6, delay: index * 0.15 }}
-      className={`group relative overflow-hidden rounded-2xl bg-card shadow-soft hover:shadow-elevated transition-all duration-500 ${
-        featured ? "lg:row-span-2" : ""
-      }`}
-    >
-      {/* Image Container */}
-      <div className={`relative overflow-hidden ${featured ? "h-80 lg:h-full" : "h-64"}`}>
-        <img
-          src={villa.images[0]}
-          alt={villa.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-        />
-        
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-        
-        {/* Availability Badge */}
-        <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold ${
-          villa.isAvailable 
-            ? "bg-primary text-primary-foreground" 
-            : "bg-destructive text-destructive-foreground"
-        }`}>
-          {villa.isAvailable ? "Available" : "Booked"}
-        </div>
-
-        {/* Rating */}
-        <div className="absolute top-4 right-4 flex items-center gap-1 px-3 py-1 bg-background/80 backdrop-blur-sm rounded-full">
-          <Star size={14} className="text-yellow-500 fill-yellow-500" />
-          <span className="text-sm font-medium text-foreground">{villa.rating}</span>
-          <span className="text-xs text-muted-foreground">({villa.reviewCount})</span>
-        </div>
-
-        {/* Content Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6">
-          <h3 className={`font-display font-semibold text-background mb-2 ${
-            featured ? "text-2xl lg:text-3xl" : "text-xl"
+    <Link to={`/villas/${villa.id}`}>
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 50 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.6, delay: index * 0.15 }}
+        className={`group relative overflow-hidden rounded-2xl bg-card shadow-soft hover:shadow-elevated transition-all duration-500 cursor-pointer ${
+          featured ? "lg:row-span-2" : ""
+        }`}
+      >
+        {/* Image Container */}
+        <div className={`relative overflow-hidden ${featured ? "h-80 lg:h-full" : "h-64"}`}>
+          <img
+            src={villa.images[0]}
+            alt={villa.name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
+          
+          {/* Availability Badge */}
+          <div className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold ${
+            villa.isAvailable 
+              ? "bg-primary text-primary-foreground" 
+              : "bg-destructive text-destructive-foreground"
           }`}>
-            {villa.name}
-          </h3>
-          <p className="text-background/80 text-sm mb-4 line-clamp-2">
-            {villa.shortDescription}
-          </p>
-
-          {/* Meta Info */}
-          <div className="flex items-center gap-4 text-background/70 text-sm mb-4">
-            <div className="flex items-center gap-1">
-              <Users size={14} />
-              <span>{villa.capacity}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Bed size={14} />
-              <span>{villa.bedrooms}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Bath size={14} />
-              <span>{villa.bathrooms}</span>
-            </div>
+            {villa.isAvailable ? "Available" : "Booked"}
           </div>
 
-          {/* Price & CTA */}
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-xl lg:text-2xl font-semibold text-background">
-                {formatCurrency(villa.pricePerNight)}
-              </span>
-              <span className="text-background/60 text-sm"> /night</span>
+          {/* Rating */}
+          <div className="absolute top-4 right-4 flex items-center gap-1 px-3 py-1 bg-background/80 backdrop-blur-sm rounded-full">
+            <Star size={14} className="text-yellow-500 fill-yellow-500" />
+            <span className="text-sm font-medium text-foreground">{villa.rating}</span>
+            <span className="text-xs text-muted-foreground">({villa.reviewCount})</span>
+          </div>
+
+          {/* Content Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-6">
+            <h3 className={`font-display font-semibold text-background mb-2 ${
+              featured ? "text-2xl lg:text-3xl" : "text-xl"
+            }`}>
+              {villa.name}
+            </h3>
+            <p className="text-background/80 text-sm mb-4 line-clamp-2">
+              {villa.shortDescription}
+            </p>
+
+            {/* Meta Info */}
+            <div className="flex items-center gap-4 text-background/70 text-sm mb-4">
+              <div className="flex items-center gap-1">
+                <Users size={14} />
+                <span>{villa.capacity}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Bed size={14} />
+                <span>{villa.bedrooms}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Bath size={14} />
+                <span>{villa.bathrooms}</span>
+              </div>
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 bg-background text-foreground rounded-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-              <span className="text-sm font-medium">View</span>
-              <ArrowRight size={16} />
-            </button>
+
+            {/* Price & CTA */}
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xl lg:text-2xl font-semibold text-background">
+                  {formatCurrency(villa.pricePerNight)}
+                </span>
+                <span className="text-background/60 text-sm"> /night</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-background text-foreground rounded-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                <span className="text-sm font-medium">View</span>
+                <ArrowRight size={16} />
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </Link>
   );
 };
 
@@ -146,10 +149,10 @@ const VillaShowcase = () => {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="text-center mt-12"
         >
-          <a href="#" className="btn-outline inline-flex items-center gap-2">
+          <Link to="/villas" className="btn-outline inline-flex items-center gap-2">
             View All Villas
             <ArrowRight size={18} />
-          </a>
+          </Link>
         </motion.div>
       </div>
     </section>
