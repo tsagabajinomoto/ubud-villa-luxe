@@ -64,6 +64,7 @@ const BookingCard = ({ villa }: BookingCardProps) => {
     setBooking({
       villaId: villa.id,
       villaName: villa.name,
+      villaImage: villa.images[0],
       checkIn,
       checkOut,
       guests,
