@@ -136,8 +136,9 @@ const BookingCard = ({ villa }: BookingCardProps) => {
                 minDate={new Date()}
                 filterDate={(date) => !isDateUnavailable(date)}
                 placeholderText="Add date"
-                className="w-full bg-transparent text-foreground focus:outline-none text-sm font-medium"
+                className="w-full bg-transparent text-foreground focus:outline-none text-sm font-medium cursor-pointer"
                 dateFormat="MMM d, yyyy"
+                popperPlacement="bottom-start"
               />
             </div>
             <div className="p-3">
@@ -153,8 +154,9 @@ const BookingCard = ({ villa }: BookingCardProps) => {
                 minDate={checkIn || new Date()}
                 filterDate={(date) => !isDateUnavailable(date)}
                 placeholderText="Add date"
-                className="w-full bg-transparent text-foreground focus:outline-none text-sm font-medium"
+                className="w-full bg-transparent text-foreground focus:outline-none text-sm font-medium cursor-pointer"
                 dateFormat="MMM d, yyyy"
+                popperPlacement="bottom-end"
               />
             </div>
           </div>
