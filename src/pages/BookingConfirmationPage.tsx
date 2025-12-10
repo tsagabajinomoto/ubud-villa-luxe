@@ -78,7 +78,7 @@ GUEST
 -----
 Name: ${booking.guestDetails.fullName}
 Email: ${booking.guestDetails.email}
-Phone: ${booking.guestDetails.phone}
+WhatsApp: ${booking.guestDetails.whatsapp}
 Guests: ${booking.guests}
 
 PAYMENT

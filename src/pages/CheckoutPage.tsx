@@ -36,7 +36,7 @@ const CheckoutPage = () => {
   // Form state
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("+62 ");
+  const [whatsapp, setWhatsapp] = useState("+62 ");
   const [specialRequests, setSpecialRequests] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [agreedCancellation, setAgreedCancellation] = useState(false);
@@ -60,18 +60,26 @@ const CheckoutPage = () => {
 
     if (!fullName.trim()) {
       newErrors.fullName = "Full name is required";
+    } else if (fullName.trim().length > 100) {
+      newErrors.fullName = "Name must be less than 100 characters";
     }
 
     if (!email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Invalid email format";
+    } else if (email.length > 255) {
+      newErrors.email = "Email must be less than 255 characters";
     }
 
-    if (!phone.trim() || phone === "+62 ") {
-      newErrors.phone = "Phone number is required";
-    } else if (!/^\+62\s?\d{9,13}$/.test(phone.replace(/\s/g, ""))) {
-      newErrors.phone = "Invalid Indonesian phone format";
+    if (!whatsapp.trim() || whatsapp === "+62 ") {
+      newErrors.whatsapp = "WhatsApp number is required";
+    } else if (!/^\+62\s?\d{9,13}$/.test(whatsapp.replace(/\s/g, ""))) {
+      newErrors.whatsapp = "Invalid Indonesian WhatsApp format (e.g., +62 812 3456 7890)";
+    }
+
+    if (specialRequests.length > 1000) {
+      newErrors.specialRequests = "Special requests must be less than 1000 characters";
     }
 
     setErrors(newErrors);
@@ -113,10 +121,10 @@ const CheckoutPage = () => {
 
     // Save guest details
     setGuestDetails({
-      fullName,
-      email,
-      phone,
-      specialRequests,
+      fullName: fullName.trim(),
+      email: email.trim(),
+      whatsapp: whatsapp.trim(),
+      specialRequests: specialRequests.trim(),
     });
 
     // Add completed booking
@@ -132,10 +140,10 @@ const CheckoutPage = () => {
       total: booking.total,
       status: "confirmed",
       guestDetails: {
-        fullName,
-        email,
-        phone,
-        specialRequests,
+        fullName: fullName.trim(),
+        email: email.trim(),
+        whatsapp: whatsapp.trim(),
+        specialRequests: specialRequests.trim(),
       },
       paymentMethod,
       createdAt: new Date().toISOString(),
@@ -318,19 +326,25 @@ const CheckoutPage = () => {
 
                       <div>
                         <label className="block text-sm font-medium mb-2">
-                          Phone Number <span className="text-destructive">*</span>
+                          WhatsApp Number <span className="text-destructive">*</span>
                         </label>
-                        <input
-                          type="tel"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          className={`w-full px-4 py-3 rounded-xl border ${
-                            errors.phone ? "border-destructive" : "border-border"
-                          } bg-background focus:outline-none focus:ring-2 focus:ring-primary`}
-                          placeholder="+62 812 3456 7890"
-                        />
-                        {errors.phone && (
-                          <p className="mt-1 text-sm text-destructive">{errors.phone}</p>
+                        <div className="relative">
+                          <input
+                            type="tel"
+                            value={whatsapp}
+                            onChange={(e) => setWhatsapp(e.target.value)}
+                            className={`w-full px-4 py-3 rounded-xl border ${
+                              errors.whatsapp ? "border-destructive" : "border-border"
+                            } bg-background focus:outline-none focus:ring-2 focus:ring-primary`}
+                            placeholder="+62 812 3456 7890"
+                            maxLength={20}
+                          />
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          We will contact you via WhatsApp for booking updates
+                        </p>
+                        {errors.whatsapp && (
+                          <p className="mt-1 text-sm text-destructive">{errors.whatsapp}</p>
                         )}
                       </div>
 
@@ -342,9 +356,23 @@ const CheckoutPage = () => {
                           value={specialRequests}
                           onChange={(e) => setSpecialRequests(e.target.value)}
                           rows={4}
-                          className="w-full px-4 py-3 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                          placeholder="Any special requests or requirements..."
+                          maxLength={1000}
+                          className={`w-full px-4 py-3 rounded-xl border ${
+                            errors.specialRequests ? "border-destructive" : "border-border"
+                          } bg-background focus:outline-none focus:ring-2 focus:ring-primary resize-none`}
+                          placeholder="Early check-in, late check-out, dietary requirements, airport pickup, etc..."
                         />
+                        <div className="flex justify-between mt-1">
+                          <p className="text-xs text-muted-foreground">
+                            Let us know how we can make your stay special
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            {specialRequests.length}/1000
+                          </span>
+                        </div>
+                        {errors.specialRequests && (
+                          <p className="mt-1 text-sm text-destructive">{errors.specialRequests}</p>
+                        )}
                       </div>
                     </div>
 
