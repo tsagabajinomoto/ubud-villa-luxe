@@ -18,7 +18,7 @@ export interface BookingData {
 export interface GuestDetails {
   fullName: string;
   email: string;
-  phone: string;
+  whatsapp: string;
   specialRequests: string;
 }
 
