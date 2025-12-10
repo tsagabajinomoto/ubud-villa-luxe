@@ -59,7 +59,7 @@ const VillaDetailPage = () => {
           <ImageGallery images={villa.images} alt={villa.name} />
 
           {/* Content Grid */}
-          <div className="grid lg:grid-cols-3 gap-8 mt-8">
+          <div className="grid lg:grid-cols-3 gap-8 mt-8 pb-24 lg:pb-0">
             {/* Left Column */}
             <div className="lg:col-span-2 space-y-8">
               {/* Header */}
@@ -181,10 +181,15 @@ const VillaDetailPage = () => {
               <AvailabilityCalendar bookedDates={villa.bookedDates} />
             </div>
 
-            {/* Right Column - Booking Card */}
-            <div className="lg:col-span-1">
+            {/* Right Column - Booking Card (hidden on mobile, shown as fixed bar) */}
+            <div className="hidden lg:block lg:col-span-1">
               <BookingCard villa={villa} />
             </div>
+          </div>
+
+          {/* Mobile Booking Card - renders fixed bottom bar */}
+          <div className="lg:hidden">
+            <BookingCard villa={villa} />
           </div>
 
           {/* Similar Villas */}
