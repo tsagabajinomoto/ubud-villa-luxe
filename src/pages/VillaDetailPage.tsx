@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronRight, MapPin, Star, Users, Bed, Bath, Check, BadgeCheck } from "lucide-react";
+import { ChevronRight, MapPin, Star, Users, Bed, Bath, Check, BadgeCheck, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ImageGallery from "@/components/ImageGallery";
@@ -9,26 +9,42 @@ import BookingCard from "@/components/BookingCard";
 import AvailabilityCalendar from "@/components/AvailabilityCalendar";
 import ReviewsSection from "@/components/ReviewsSection";
 import VillaCard from "@/components/VillaCard";
-import { villas, testimonials } from "@/data/villas";
+import { useVilla, useVillas, useVillaTestimonials } from "@/hooks/useVillaData";
 
 const VillaDetailPage = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState("overview");
-
-  const villa = useMemo(() => villas.find((v) => v.id === id), [id]);
-  const villaReviews = useMemo(
-    () => testimonials.filter((t) => t.villaId === id),
-    [id]
-  );
+  
+  const { villa, loading: villaLoading } = useVilla(id);
+  const { testimonials: villaReviews } = useVillaTestimonials(id);
+  const { villas } = useVillas();
+  
   const similarVillas = useMemo(
     () => villas.filter((v) => v.id !== id).slice(0, 3),
-    [id]
+    [villas, id]
   );
+
+  if (villaLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!villa) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Villa not found</p>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <p className="text-muted-foreground">Villa not found</p>
+          <Link to="/villas" className="btn-primary">Browse Villas</Link>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -193,14 +209,16 @@ const VillaDetailPage = () => {
           </div>
 
           {/* Similar Villas */}
-          <section className="mt-16 pt-16 border-t border-border">
-            <h2 className="font-display text-2xl font-semibold mb-8">Similar Villas</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {similarVillas.map((v, i) => (
-                <VillaCard key={v.id} villa={v} index={i} />
-              ))}
-            </div>
-          </section>
+          {similarVillas.length > 0 && (
+            <section className="mt-16 pt-16 border-t border-border">
+              <h2 className="font-display text-2xl font-semibold mb-8">Similar Villas</h2>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {similarVillas.map((v, i) => (
+                  <VillaCard key={v.id} villa={v} index={i} />
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </main>
 

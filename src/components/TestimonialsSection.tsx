@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
-import { Star, ChevronLeft, ChevronRight, Quote } from "lucide-react";
-import { testimonials } from "@/data/villas";
+import { Star, ChevronLeft, ChevronRight, Quote, Loader2 } from "lucide-react";
+import { useTestimonials } from "@/hooks/useVillaData";
 
 const TestimonialsSection = () => {
   const sectionRef = useRef(null);
@@ -9,6 +9,7 @@ const TestimonialsSection = () => {
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const { testimonials, loading } = useTestimonials();
 
   const checkScroll = () => {
     if (scrollRef.current) {
@@ -25,7 +26,7 @@ const TestimonialsSection = () => {
       checkScroll();
       return () => scrollElement.removeEventListener("scroll", checkScroll);
     }
-  }, []);
+  }, [testimonials]);
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -36,6 +37,20 @@ const TestimonialsSection = () => {
       });
     }
   };
+
+  if (loading) {
+    return (
+      <section className="section-padding bg-background">
+        <div className="container mx-auto flex items-center justify-center min-h-[300px]">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+      </section>
+    );
+  }
+
+  if (testimonials.length === 0) {
+    return null;
+  }
 
   return (
     <section id="testimonials" className="section-padding bg-background overflow-hidden" ref={sectionRef}>

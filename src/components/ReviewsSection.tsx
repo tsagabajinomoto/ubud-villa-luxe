@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Star, ThumbsUp, MessageSquare } from "lucide-react";
-import { Testimonial } from "@/data/villas";
+import { Testimonial } from "@/hooks/useVillaData";
 import { getAverageRating } from "@/utils/booking";
 
 interface ReviewsSectionProps {

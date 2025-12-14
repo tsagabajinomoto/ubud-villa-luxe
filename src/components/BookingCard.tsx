@@ -11,7 +11,7 @@ import {
   X,
   ChevronUp
 } from "lucide-react";
-import { Villa } from "@/data/villas";
+import { Villa } from "@/hooks/useVillaData";
 import { formatCurrency, calculateNights, calculateTotal, isDateBooked } from "@/utils/booking";
 import { useBookingStore } from "@/store/bookingStore";
 import { useNavigate } from "react-router-dom";

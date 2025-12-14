@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Link } from "react-router-dom";
-import { Star, Users, Bed, Bath, ArrowRight } from "lucide-react";
-import { villas } from "@/data/villas";
+import { Star, Users, Bed, Bath, ArrowRight, Loader2 } from "lucide-react";
+import { useVillas, Villa } from "@/hooks/useVillaData";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("id-ID", {
@@ -14,7 +14,7 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-const VillaCard = ({ villa, index, featured = false }: { villa: typeof villas[0]; index: number; featured?: boolean }) => {
+const VillaCard = ({ villa, index, featured = false }: { villa: Villa; index: number; featured?: boolean }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
@@ -32,7 +32,7 @@ const VillaCard = ({ villa, index, featured = false }: { villa: typeof villas[0]
         {/* Image Container */}
         <div className={`relative overflow-hidden ${featured ? "h-80 lg:h-full" : "h-64"}`}>
           <img
-            src={villa.images[0]}
+            src={villa.images[0] || "https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=800"}
             alt={villa.name}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
@@ -64,7 +64,7 @@ const VillaCard = ({ villa, index, featured = false }: { villa: typeof villas[0]
               {villa.name}
             </h3>
             <p className="text-background/80 text-sm mb-4 line-clamp-2">
-              {villa.shortDescription}
+              {villa.shortDescription || villa.tagline}
             </p>
 
             {/* Meta Info */}
@@ -106,6 +106,21 @@ const VillaCard = ({ villa, index, featured = false }: { villa: typeof villas[0]
 const VillaShowcase = () => {
   const sectionRef = useRef(null);
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+  const { villas, loading, error } = useVillas();
+
+  if (loading) {
+    return (
+      <section className="section-padding bg-background">
+        <div className="container mx-auto flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+      </section>
+    );
+  }
+
+  if (error || villas.length === 0) {
+    return null;
+  }
 
   return (
     <section id="villas" className="section-padding bg-background" ref={sectionRef}>
