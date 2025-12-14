@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import Vertical3DVillaSlider from "@/components/Vertical3DVillaSlider";
 import VillaShowcase from "@/components/VillaShowcase";
 import ExperienceSection from "@/components/ExperienceSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
@@ -11,7 +10,6 @@ import Footer from "@/components/Footer";
 
 const Index = () => {
   useEffect(() => {
-    // Update page title and meta
     document.title = "StayinUBUD | Luxury Villa Rentals in Ubud, Bali";
   }, []);
 
@@ -19,7 +17,6 @@ const Index = () => {
     <main className="overflow-x-hidden">
       <Navbar />
       <HeroSection />
-      <Vertical3DVillaSlider />
       <VillaShowcase />
       <ExperienceSection />
       <TestimonialsSection />
