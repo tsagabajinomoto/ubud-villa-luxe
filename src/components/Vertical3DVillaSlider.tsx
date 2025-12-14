@@ -1,10 +1,8 @@
-import { useState, useEffect, useRef, Suspense } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Image, Environment, Float, Text, useScroll, ScrollControls, Scroll } from "@react-three/drei";
-import { MapPin, MessageCircle, ArrowRight, Loader2, ChevronDown } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
+import { MapPin, ArrowRight, Star, Bed, Bath, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import * as THREE from "three";
 
 interface Villa {
   id: string;
@@ -13,296 +11,347 @@ interface Villa {
   price: string;
   image_url: string;
   location: string;
+  bedrooms?: number;
+  bathrooms?: number;
+  capacity?: number;
+  rating?: number;
 }
 
-// 3D Villa Card Component
-function VillaCard3D({ 
-  villa, 
-  index, 
-  total,
-  activeIndex,
-  setActiveIndex 
-}: { 
-  villa: Villa; 
-  index: number; 
-  total: number;
-  activeIndex: number;
-  setActiveIndex: (index: number) => void;
-}) {
-  const meshRef = useRef<THREE.Group>(null);
-  const scroll = useScroll();
-  const { viewport } = useThree();
-  
-  useFrame(() => {
-    if (!meshRef.current) return;
-    
-    const scrollOffset = scroll.offset;
-    const cardPosition = index / total;
-    const distance = scrollOffset - cardPosition;
-    
-    // Calculate which card is active based on scroll
-    const newActiveIndex = Math.round(scrollOffset * total);
-    if (newActiveIndex !== activeIndex && newActiveIndex >= 0 && newActiveIndex < total) {
-      setActiveIndex(newActiveIndex);
-    }
-    
-    // Z position - active card comes forward
-    const targetZ = Math.abs(distance) < 0.15 ? 0.5 : -Math.abs(distance) * 2;
-    meshRef.current.position.z = THREE.MathUtils.lerp(meshRef.current.position.z, targetZ, 0.1);
-    
-    // Y position - cards stack vertically
-    const baseY = (index - scrollOffset * total) * 4;
-    meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, baseY, 0.1);
-    
-    // Rotation for 3D effect
-    const targetRotationX = distance * 0.3;
-    const targetRotationY = distance * 0.1;
-    meshRef.current.rotation.x = THREE.MathUtils.lerp(meshRef.current.rotation.x, targetRotationX, 0.1);
-    meshRef.current.rotation.y = THREE.MathUtils.lerp(meshRef.current.rotation.y, targetRotationY, 0.1);
-    
-    // Scale - active card is larger
-    const targetScale = Math.abs(distance) < 0.15 ? 1.1 : 0.85 - Math.abs(distance) * 0.3;
-    meshRef.current.scale.setScalar(THREE.MathUtils.lerp(meshRef.current.scale.x, Math.max(0.5, targetScale), 0.1));
-    
-    // Opacity via material
-    const children = meshRef.current.children;
-    children.forEach((child) => {
-      if ((child as THREE.Mesh).material) {
-        const mat = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
-        if (mat.opacity !== undefined) {
-          mat.opacity = THREE.MathUtils.lerp(mat.opacity, Math.abs(distance) < 0.3 ? 1 : 0.3, 0.1);
-        }
-      }
-    });
-  });
-
-  const aspectRatio = 16 / 9;
-  const width = Math.min(viewport.width * 0.7, 8);
-  const height = width / aspectRatio;
-
-  return (
-    <Float
-      speed={1.5}
-      rotationIntensity={0.1}
-      floatIntensity={0.3}
-    >
-      <group ref={meshRef} position={[0, (index - total / 2) * 4, 0]}>
-        {/* Villa Image */}
-        <Image
-          url={villa.image_url}
-          scale={[width, height]}
-          transparent
-          opacity={1}
-          position={[0, 0, 0]}
-        />
-        
-        {/* Glass overlay frame */}
-        <mesh position={[0, 0, 0.01]}>
-          <planeGeometry args={[width + 0.1, height + 0.1]} />
-          <meshBasicMaterial 
-            color="#A1BC98" 
-            transparent 
-            opacity={0.1}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-        
-        {/* Bottom gradient overlay */}
-        <mesh position={[0, -height / 4, 0.02]}>
-          <planeGeometry args={[width, height / 2]} />
-          <meshBasicMaterial 
-            color="#1a1a1a" 
-            transparent 
-            opacity={0.7}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      </group>
-    </Float>
-  );
-}
-
-// 3D Scene Component
-function Scene({ villas, activeIndex, setActiveIndex }: { 
-  villas: Villa[]; 
-  activeIndex: number;
-  setActiveIndex: (index: number) => void;
-}) {
-  return (
-    <>
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[5, 5, 5]} intensity={1} />
-      <pointLight position={[-5, -5, 5]} intensity={0.5} color="#A1BC98" />
-      
-      <ScrollControls pages={villas.length} damping={0.25}>
-        <Scroll>
-          {villas.map((villa, index) => (
-            <VillaCard3D
-              key={villa.id}
-              villa={villa}
-              index={index}
-              total={villas.length}
-              activeIndex={activeIndex}
-              setActiveIndex={setActiveIndex}
-            />
-          ))}
-        </Scroll>
-      </ScrollControls>
-      
-      <Environment preset="city" />
-    </>
-  );
-}
-
-// Main Component
 const Vertical3DVillaSlider = () => {
   const [villas, setVillas] = useState<Villa[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"]
+  });
+
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
 
   useEffect(() => {
     const fetchVillas = async () => {
       try {
         setLoading(true);
-        const { data, error: fetchError } = await supabase
+        const { data, error } = await supabase
           .from("villas")
-          .select("id, name, description, price, image_url, location")
+          .select("*")
           .order("created_at", { ascending: true });
 
-        if (fetchError) throw fetchError;
+        if (error) throw error;
         setVillas(data || []);
       } catch (err) {
         console.error("Error fetching villas:", err);
-        setError("Failed to load villas");
       } finally {
         setLoading(false);
       }
     };
-
     fetchVillas();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = smoothProgress.on("change", (value) => {
+      const newIndex = Math.min(
+        Math.floor(value * villas.length),
+        villas.length - 1
+      );
+      if (newIndex !== activeIndex && newIndex >= 0) {
+        setActiveIndex(newIndex);
+      }
+    });
+    return () => unsubscribe();
+  }, [smoothProgress, villas.length, activeIndex]);
+
   if (loading) {
     return (
-      <section className="relative h-screen w-full bg-foreground flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
-          <p className="text-background/70 font-body">Loading 3D experience...</p>
+      <section className="h-screen w-full bg-foreground flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-background/60 font-body text-sm tracking-wide">Loading experiences...</p>
         </div>
       </section>
     );
   }
 
-  if (error || !villas.length) {
+  if (!villas.length) {
     return (
-      <section className="relative h-screen w-full bg-foreground flex items-center justify-center">
-        <p className="text-background/70 font-body">{error || "No villas available"}</p>
+      <section className="h-screen w-full bg-foreground flex items-center justify-center">
+        <p className="text-background/60 font-body">No villas available</p>
       </section>
     );
   }
 
-  const activeVilla = villas[activeIndex];
+  const activeVilla = villas[activeIndex] || villas[0];
 
   return (
-    <section className="relative h-[200vh] w-full bg-gradient-to-b from-foreground via-foreground/95 to-foreground">
-      {/* 3D Canvas - Fixed while scrolling */}
-      <div className="sticky top-0 h-screen w-full">
-        <Canvas
-          camera={{ position: [0, 0, 8], fov: 50 }}
-          className="!absolute inset-0"
-          dpr={[1, 2]}
-        >
-          <Suspense fallback={null}>
-            <Scene 
-              villas={villas} 
-              activeIndex={activeIndex}
-              setActiveIndex={setActiveIndex}
+    <section 
+      ref={containerRef}
+      className="relative bg-foreground"
+      style={{ height: `${(villas.length + 1) * 100}vh` }}
+    >
+      {/* Fixed Container */}
+      <div className="sticky top-0 h-screen w-full overflow-hidden">
+        {/* Background Image with Parallax */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeVilla.id}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-0"
+          >
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${activeVilla.image_url})` }}
             />
-          </Suspense>
-        </Canvas>
+            {/* Sophisticated Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-foreground via-foreground/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-foreground via-transparent to-foreground/30" />
+          </motion.div>
+        </AnimatePresence>
 
-        {/* Overlay Content */}
-        <div className="absolute inset-0 pointer-events-none z-10">
-          {/* Header */}
-          <div className="absolute top-8 left-8 lg:left-16">
-            <p className="text-primary font-body text-sm tracking-widest uppercase mb-2">
-              Scroll to Explore
-            </p>
-            <h2 className="font-display text-4xl lg:text-5xl text-background font-bold">
-              Featured Villas
-            </h2>
-          </div>
+        {/* Content Grid */}
+        <div className="relative z-10 h-full max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="h-full flex items-center">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 w-full">
+              
+              {/* Left - Villa Information */}
+              <div className="flex flex-col justify-center">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeVilla.id}
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -40 }}
+                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    {/* Section Label */}
+                    <div className="flex items-center gap-3 mb-8">
+                      <div className="w-12 h-px bg-primary" />
+                      <span className="text-primary font-body text-xs tracking-[0.3em] uppercase">
+                        Featured Collection
+                      </span>
+                    </div>
 
-          {/* Villa Info Panel */}
-          <div className="absolute bottom-0 left-0 right-0 p-8 lg:p-16 pointer-events-auto">
-            <div className="max-w-2xl">
-              {/* Location Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 backdrop-blur-sm border border-primary/30 rounded-full mb-4">
-                <MapPin className="w-4 h-4 text-primary" />
-                <span className="text-background/90 text-sm font-body">
-                  {activeVilla.location}
-                </span>
+                    {/* Villa Counter */}
+                    <div className="flex items-baseline gap-2 mb-6">
+                      <span className="font-display text-7xl lg:text-8xl font-light text-primary">
+                        {String(activeIndex + 1).padStart(2, '0')}
+                      </span>
+                      <span className="text-background/30 font-body text-lg">
+                        / {String(villas.length).padStart(2, '0')}
+                      </span>
+                    </div>
+
+                    {/* Villa Name */}
+                    <h2 className="font-display text-4xl lg:text-6xl xl:text-7xl text-background font-medium leading-[1.1] mb-6">
+                      {activeVilla.name}
+                    </h2>
+
+                    {/* Location */}
+                    <div className="flex items-center gap-2 text-background/70 mb-6">
+                      <MapPin className="w-4 h-4 text-primary" />
+                      <span className="font-body text-sm tracking-wide">{activeVilla.location}</span>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-background/60 font-body text-base lg:text-lg leading-relaxed mb-8 max-w-md">
+                      {activeVilla.description}
+                    </p>
+
+                    {/* Stats Row */}
+                    <div className="flex items-center gap-6 mb-10">
+                      {activeVilla.rating && (
+                        <div className="flex items-center gap-2">
+                          <Star className="w-4 h-4 text-primary fill-primary" />
+                          <span className="text-background font-body text-sm">{activeVilla.rating}</span>
+                        </div>
+                      )}
+                      {activeVilla.bedrooms && (
+                        <div className="flex items-center gap-2">
+                          <Bed className="w-4 h-4 text-background/50" />
+                          <span className="text-background/70 font-body text-sm">{activeVilla.bedrooms} Beds</span>
+                        </div>
+                      )}
+                      {activeVilla.bathrooms && (
+                        <div className="flex items-center gap-2">
+                          <Bath className="w-4 h-4 text-background/50" />
+                          <span className="text-background/70 font-body text-sm">{activeVilla.bathrooms} Baths</span>
+                        </div>
+                      )}
+                      {activeVilla.capacity && (
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-background/50" />
+                          <span className="text-background/70 font-body text-sm">{activeVilla.capacity} Guests</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Price & CTA */}
+                    <div className="flex items-end justify-between gap-6 flex-wrap">
+                      <div>
+                        <p className="text-background/50 font-body text-xs uppercase tracking-wider mb-1">Starting from</p>
+                        <p className="font-display text-3xl lg:text-4xl text-background">
+                          {activeVilla.price}
+                          <span className="text-background/40 text-base font-body ml-1">/night</span>
+                        </p>
+                      </div>
+                      
+                      <Link
+                        to={`/villas/${activeVilla.id}`}
+                        className="group inline-flex items-center gap-3 bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 font-body text-sm font-medium tracking-wide transition-all duration-300 hover:gap-4"
+                      >
+                        Explore Villa
+                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                      </Link>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
-              {/* Villa Name */}
-              <h3 className="font-display text-4xl lg:text-6xl text-background font-bold mb-3 transition-all duration-500">
-                {activeVilla.name}
-              </h3>
+              {/* Right - Visual Cards Stack */}
+              <div className="hidden lg:flex items-center justify-center relative">
+                <div className="relative w-full max-w-md aspect-[3/4]">
+                  {villas.map((villa, index) => {
+                    const offset = index - activeIndex;
+                    const isActive = index === activeIndex;
+                    const isVisible = Math.abs(offset) <= 2;
+                    
+                    if (!isVisible) return null;
 
-              {/* Description */}
-              <p className="text-background/70 text-lg lg:text-xl font-body mb-3">
-                {activeVilla.description}
-              </p>
-
-              {/* Price */}
-              <p className="text-primary text-2xl lg:text-3xl font-display font-semibold mb-6">
-                {activeVilla.price}
-                <span className="text-sm text-background/50 ml-1">/night</span>
-              </p>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-wrap gap-4">
-                <Link
-                  to={`/villas/${activeVilla.id}`}
-                  className="group inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-body font-medium transition-all duration-300 hover:shadow-lg hover:shadow-primary/30"
-                >
-                  Book Now
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <a
-                  href="https://wa.me/6281234567890"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-background/10 hover:bg-background/20 backdrop-blur-sm border border-background/30 text-background px-6 py-3 rounded-lg font-body font-medium transition-all duration-300"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  WhatsApp
-                </a>
+                    return (
+                      <motion.div
+                        key={villa.id}
+                        className="absolute inset-0 rounded-2xl overflow-hidden cursor-pointer"
+                        initial={false}
+                        animate={{
+                          y: offset * 40,
+                          scale: isActive ? 1 : 0.9 - Math.abs(offset) * 0.05,
+                          opacity: isActive ? 1 : 0.4 - Math.abs(offset) * 0.15,
+                          zIndex: villas.length - Math.abs(offset),
+                          rotateX: offset * -5,
+                        }}
+                        transition={{ 
+                          duration: 0.6, 
+                          ease: [0.22, 1, 0.36, 1] 
+                        }}
+                        style={{ 
+                          transformStyle: "preserve-3d",
+                          perspective: 1000 
+                        }}
+                        onClick={() => setActiveIndex(index)}
+                      >
+                        <div 
+                          className="w-full h-full bg-cover bg-center"
+                          style={{ backgroundImage: `url(${villa.image_url})` }}
+                        />
+                        {/* Card Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-transparent to-transparent" />
+                        
+                        {/* Card Label */}
+                        {isActive && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="absolute bottom-6 left-6 right-6"
+                          >
+                            <div className="backdrop-blur-md bg-background/10 border border-background/20 rounded-xl p-4">
+                              <p className="text-background font-display text-lg">{villa.name}</p>
+                              <p className="text-primary font-body text-sm">{villa.price}/night</p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Progress Indicator */}
-          <div className="absolute right-8 lg:right-16 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+        {/* Progress Navigation */}
+        <div className="absolute right-6 lg:right-12 top-1/2 -translate-y-1/2 z-20">
+          <div className="flex flex-col items-center gap-1">
             {villas.map((_, index) => (
-              <div
+              <button
                 key={index}
-                className={`w-2 transition-all duration-500 rounded-full ${
-                  activeIndex === index 
-                    ? "h-8 bg-primary" 
-                    : "h-2 bg-background/30"
-                }`}
-              />
+                onClick={() => setActiveIndex(index)}
+                className="group p-2 focus:outline-none"
+                aria-label={`Go to villa ${index + 1}`}
+              >
+                <div 
+                  className={`w-0.5 rounded-full transition-all duration-500 ${
+                    index === activeIndex 
+                      ? "h-10 bg-primary" 
+                      : "h-4 bg-background/20 group-hover:bg-background/40"
+                  }`}
+                />
+              </button>
             ))}
           </div>
+        </div>
 
-          {/* Scroll Indicator */}
-          <div className="absolute bottom-8 right-8 lg:right-16 flex flex-col items-center gap-2 animate-bounce">
-            <span className="text-background/50 text-xs font-body uppercase tracking-widest rotate-90 origin-center translate-x-4">
-              Scroll
-            </span>
-            <ChevronDown className="w-5 h-5 text-primary" />
+        {/* Scroll Hint */}
+        <motion.div 
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
+          animate={{ opacity: activeIndex === 0 ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <span className="text-background/40 font-body text-xs tracking-[0.2em] uppercase">
+            Scroll to explore
+          </span>
+          <motion.div 
+            className="w-5 h-8 border border-background/30 rounded-full flex justify-center pt-2"
+            initial={{ opacity: 0.5 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, repeat: Infinity, repeatType: "reverse" }}
+          >
+            <motion.div 
+              className="w-1 h-2 bg-primary rounded-full"
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* Bottom Info Bar */}
+        <div className="absolute bottom-0 left-0 right-0 border-t border-background/10 backdrop-blur-sm bg-foreground/30">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-8">
+                <a 
+                  href="https://wa.me/6281234567890"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-background/60 hover:text-primary transition-colors font-body text-sm"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                  Chat with us
+                </a>
+                <Link 
+                  to="/villas"
+                  className="text-background/60 hover:text-primary transition-colors font-body text-sm"
+                >
+                  View all villas →
+                </Link>
+              </div>
+              <div className="hidden md:flex items-center gap-2 text-background/40 font-body text-xs">
+                <span>Use scroll or</span>
+                <kbd className="px-2 py-1 bg-background/10 rounded text-background/60">↑</kbd>
+                <kbd className="px-2 py-1 bg-background/10 rounded text-background/60">↓</kbd>
+                <span>to navigate</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
