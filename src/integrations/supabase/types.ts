@@ -14,45 +14,202 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          check_in: string
+          check_out: string
+          created_at: string
+          guest_email: string
+          guest_name: string
+          guest_whatsapp: string
+          guests: number
+          id: string
+          special_requests: string | null
+          status: string | null
+          total_price: number
+          villa_id: string | null
+        }
+        Insert: {
+          check_in: string
+          check_out: string
+          created_at?: string
+          guest_email: string
+          guest_name: string
+          guest_whatsapp: string
+          guests?: number
+          id?: string
+          special_requests?: string | null
+          status?: string | null
+          total_price: number
+          villa_id?: string | null
+        }
+        Update: {
+          check_in?: string
+          check_out?: string
+          created_at?: string
+          guest_email?: string
+          guest_name?: string
+          guest_whatsapp?: string
+          guests?: number
+          id?: string
+          special_requests?: string | null
+          status?: string | null
+          total_price?: number
+          villa_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_villa_id_fkey"
+            columns: ["villa_id"]
+            isOneToOne: false
+            referencedRelation: "villas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      testimonials: {
+        Row: {
+          avatar: string | null
+          country: string
+          created_at: string
+          host_response: string | null
+          id: string
+          name: string
+          rating: number
+          rating_accuracy: number | null
+          rating_checkin: number | null
+          rating_cleanliness: number | null
+          rating_communication: number | null
+          rating_location: number | null
+          rating_value: number | null
+          review: string
+          review_date: string
+          villa_id: string | null
+          villa_name: string | null
+        }
+        Insert: {
+          avatar?: string | null
+          country: string
+          created_at?: string
+          host_response?: string | null
+          id?: string
+          name: string
+          rating?: number
+          rating_accuracy?: number | null
+          rating_checkin?: number | null
+          rating_cleanliness?: number | null
+          rating_communication?: number | null
+          rating_location?: number | null
+          rating_value?: number | null
+          review: string
+          review_date: string
+          villa_id?: string | null
+          villa_name?: string | null
+        }
+        Update: {
+          avatar?: string | null
+          country?: string
+          created_at?: string
+          host_response?: string | null
+          id?: string
+          name?: string
+          rating?: number
+          rating_accuracy?: number | null
+          rating_checkin?: number | null
+          rating_cleanliness?: number | null
+          rating_communication?: number | null
+          rating_location?: number | null
+          rating_value?: number | null
+          review?: string
+          review_date?: string
+          villa_id?: string | null
+          villa_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "testimonials_villa_id_fkey"
+            columns: ["villa_id"]
+            isOneToOne: false
+            referencedRelation: "villas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       villas: {
         Row: {
-          bathrooms: number | null
-          bedrooms: number | null
-          capacity: number | null
+          amenities: string[] | null
+          bathrooms: number
+          bedrooms: number
+          booked_dates: string[] | null
+          capacity: number
+          cleaning_fee: number | null
+          coordinates_lat: number | null
+          coordinates_lng: number | null
           created_at: string
           description: string
           id: string
-          image_url: string
+          images: string[] | null
+          is_available: boolean | null
           location: string
+          minimum_stay: number | null
           name: string
-          price: string
+          price_per_night: number
           rating: number | null
+          review_count: number | null
+          service_fee: number | null
+          short_description: string | null
+          tagline: string | null
+          updated_at: string
         }
         Insert: {
-          bathrooms?: number | null
-          bedrooms?: number | null
-          capacity?: number | null
+          amenities?: string[] | null
+          bathrooms?: number
+          bedrooms?: number
+          booked_dates?: string[] | null
+          capacity?: number
+          cleaning_fee?: number | null
+          coordinates_lat?: number | null
+          coordinates_lng?: number | null
           created_at?: string
           description: string
           id?: string
-          image_url: string
+          images?: string[] | null
+          is_available?: boolean | null
           location: string
+          minimum_stay?: number | null
           name: string
-          price: string
+          price_per_night: number
           rating?: number | null
+          review_count?: number | null
+          service_fee?: number | null
+          short_description?: string | null
+          tagline?: string | null
+          updated_at?: string
         }
         Update: {
-          bathrooms?: number | null
-          bedrooms?: number | null
-          capacity?: number | null
+          amenities?: string[] | null
+          bathrooms?: number
+          bedrooms?: number
+          booked_dates?: string[] | null
+          capacity?: number
+          cleaning_fee?: number | null
+          coordinates_lat?: number | null
+          coordinates_lng?: number | null
           created_at?: string
           description?: string
           id?: string
-          image_url?: string
+          images?: string[] | null
+          is_available?: boolean | null
           location?: string
+          minimum_stay?: number | null
           name?: string
-          price?: string
+          price_per_night?: number
           rating?: number | null
+          review_count?: number | null
+          service_fee?: number | null
+          short_description?: string | null
+          tagline?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
