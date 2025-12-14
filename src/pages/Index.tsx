@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import VerticalHeroSlider from "@/components/VerticalHeroSlider";
+import Vertical3DVillaSlider from "@/components/Vertical3DVillaSlider";
 import VillaShowcase from "@/components/VillaShowcase";
 import ExperienceSection from "@/components/ExperienceSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
@@ -19,7 +19,7 @@ const Index = () => {
     <main className="overflow-x-hidden">
       <Navbar />
       <HeroSection />
-      <VerticalHeroSlider />
+      <Vertical3DVillaSlider />
       <VillaShowcase />
       <ExperienceSection />
       <TestimonialsSection />
