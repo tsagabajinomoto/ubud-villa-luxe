@@ -1,5 +1,5 @@
-import { Villa } from "@/data/villas";
-import { differenceInDays, isWithinInterval, parseISO } from "date-fns";
+import { Villa } from "@/hooks/useVillaData";
+import { differenceInDays } from "date-fns";
 
 export const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat("id-ID", {

@@ -11,7 +11,7 @@ import {
   Check
 } from "lucide-react";
 import { useFilterStore } from "@/store/bookingStore";
-import { allAmenities, locations } from "@/data/villas";
+import { allAmenities, locations } from "@/hooks/useVillaData";
 import { formatCurrencyShort } from "@/utils/booking";
 import { Slider } from "@/components/ui/slider";
 

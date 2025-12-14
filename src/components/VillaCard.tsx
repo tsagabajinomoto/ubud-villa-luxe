@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Star, Users, Bed, Bath, ArrowRight, MapPin } from "lucide-react";
-import { Villa } from "@/data/villas";
+import { Villa } from "@/hooks/useVillaData";
 import { formatCurrency, getAvailabilityForVilla } from "@/utils/booking";
 import { useState } from "react";
 

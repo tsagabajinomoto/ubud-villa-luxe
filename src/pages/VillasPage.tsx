@@ -1,18 +1,19 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ChevronRight, SlidersHorizontal, X, ArrowUpDown } from "lucide-react";
+import { ChevronRight, SlidersHorizontal, ArrowUpDown, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import VillaCard from "@/components/VillaCard";
 import FilterSidebar from "@/components/FilterSidebar";
-import { villas } from "@/data/villas";
+import { useVillas } from "@/hooks/useVillaData";
 import { useFilterStore } from "@/store/bookingStore";
 import { filterVillas, sortVillas } from "@/utils/booking";
 
 const VillasPage = () => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const filters = useFilterStore();
+  const { villas, loading, error } = useVillas();
 
   const filteredVillas = useMemo(() => {
     const filtered = filterVillas(villas, {
@@ -24,7 +25,7 @@ const VillasPage = () => {
       location: filters.location,
     });
     return sortVillas(filtered, filters.sortBy);
-  }, [filters]);
+  }, [villas, filters]);
 
   const sortOptions = [
     { value: "rating", label: "Top Rated" },
@@ -32,6 +33,18 @@ const VillasPage = () => {
     { value: "price-desc", label: "Price: High to Low" },
     { value: "capacity", label: "Capacity" },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

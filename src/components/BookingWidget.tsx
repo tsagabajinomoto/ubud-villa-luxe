@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Users, Star, AlertCircle, MessageCircle, Shield, ChevronDown } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
-import { Villa } from "@/data/villas";
+import { Villa } from "@/hooks/useVillaData";
 import { formatCurrency } from "@/utils/booking";
 import { useBookingStore } from "@/store/bookingStore";
 import { useNavigate } from "react-router-dom";

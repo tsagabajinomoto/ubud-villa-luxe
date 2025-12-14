@@ -3,7 +3,7 @@ import { motion, useInView } from "framer-motion";
 import riceTerrace from "@/assets/rice-terrace.jpg";
 import temple from "@/assets/temple.jpg";
 import culture from "@/assets/culture.jpg";
-import { stats, experiences } from "@/data/villas";
+import { stats, experiences } from "@/hooks/useVillaData";
 
 const AnimatedCounter = ({ value, suffix = "", duration = 2000 }: { value: number; suffix?: string; duration?: number }) => {
   const [count, setCount] = useState(0);
